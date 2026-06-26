@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const T = {
@@ -253,7 +253,6 @@ const SplashScreen = ({ onNext }) => {
 // Login Screen
 const LoginScreen = ({ onLogin }) => {
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
   const [step, setStep] = useState("phone");
   const [loading, setLoading] = useState(false);
 
@@ -1278,42 +1277,85 @@ export default function SafarSaathApp() {
 }
 
 // Phone shell wrapper
-const AppShell = ({ children, scrollable }) => (
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0F0C", padding: "20px", fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif" }}>
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      ::-webkit-scrollbar { width: 0; height: 0; }
-      @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(10,110,63,0.4); } 50% { box-shadow: 0 0 0 12px rgba(10,110,63,0); } }
-    `}</style>
-    <div style={{
-      width: "100%", maxWidth: 390,
-      height: scrollable ? "auto" : "min(780px, 90vh)",
-      borderRadius: 40,
-      overflow: scrollable ? "auto" : "hidden",
-      boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)",
-      position: "relative",
-      background: "#F4F7F5",
-    }}>
-      {/* Status bar */}
-      <div style={{ background: "#0A6E3F", padding: "10px 24px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ color: "#fff", fontSize: 11, fontWeight: 700 }}>9:41</span>
-        <div style={{ display: "flex", gap: 6 }}>
-          <span style={{ color: "#fff", fontSize: 11 }}>📶</span>
-          <span style={{ color: "#fff", fontSize: 11 }}>🔋</span>
+// On a real device (native app or narrow/touch screen) this renders full-screen
+// with no fake mockup frame. On a wide desktop browser it shows the original
+// "phone preview" mockup with the sidebar, for design/demo purposes.
+const isNativeOrMobile = () => {
+  if (typeof window === "undefined") return false;
+  const hasCapacitor = !!window.Capacitor;
+  const isNarrow = window.innerWidth <= 480;
+  return hasCapacitor || isNarrow;
+};
+
+const AppShell = ({ children, scrollable }) => {
+  const [mobile, setMobile] = useState(isNativeOrMobile());
+
+  useEffect(() => {
+    const onResize = () => setMobile(isNativeOrMobile());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  if (mobile) {
+    return (
+      <div style={{
+        width: "100%", height: "100vh",
+        background: "#F4F7F5",
+        fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
+        overflow: "hidden",
+        position: "relative",
+      }}>
+        <style>{`
+          html, body, #root { width: 100%; height: 100%; margin: 0; padding: 0; background: #F4F7F5; }
+          @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          ::-webkit-scrollbar { width: 0; height: 0; }
+          @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(10,110,63,0.4); } 50% { box-shadow: 0 0 0 12px rgba(10,110,63,0); } }
+        `}</style>
+        <div style={{ height: "100%", overflow: scrollable ? "auto" : "hidden", position: "relative" }}>
+          {children}
         </div>
       </div>
-      <div style={{ height: scrollable ? "auto" : "calc(100% - 32px)", overflow: scrollable ? "visible" : "hidden", position: "relative" }}>
-        {children}
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0F0C", padding: "20px", fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(10,110,63,0.4); } 50% { box-shadow: 0 0 0 12px rgba(10,110,63,0); } }
+      `}</style>
+      <div style={{
+        width: "100%", maxWidth: 390,
+        height: scrollable ? "auto" : "min(780px, 90vh)",
+        borderRadius: 40,
+        overflow: scrollable ? "auto" : "hidden",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)",
+        position: "relative",
+        background: "#F4F7F5",
+      }}>
+        {/* Status bar */}
+        <div style={{ background: "#0A6E3F", padding: "10px 24px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ color: "#fff", fontSize: 11, fontWeight: 700 }}>9:41</span>
+          <div style={{ display: "flex", gap: 6 }}>
+            <span style={{ color: "#fff", fontSize: 11 }}>📶</span>
+            <span style={{ color: "#fff", fontSize: 11 }}>🔋</span>
+          </div>
+        </div>
+        <div style={{ height: scrollable ? "auto" : "calc(100% - 32px)", overflow: scrollable ? "visible" : "hidden", position: "relative" }}>
+          {children}
+        </div>
+      </div>
+
+      {/* Desktop nav panel */}
+      <div style={{ marginLeft: 32, display: "flex", flexDirection: "column", gap: 12, maxWidth: 220 }}>
+        <div style={{ color: "#fff", fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>🚘 SafarSaath</div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6 }}>Pakistan's trusted carpooling platform</div>
+        <div style={{ height: 1, background: "rgba(255,255,255,0.1)" }} />
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5 }}>Navigate Demo</div>
       </div>
     </div>
-
-    {/* Desktop nav panel */}
-    <div style={{ marginLeft: 32, display: "flex", flexDirection: "column", gap: 12, maxWidth: 220 }}>
-      <div style={{ color: "#fff", fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>🚘 SafarSaath</div>
-      <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6 }}>Pakistan's trusted carpooling platform</div>
-      <div style={{ height: 1, background: "rgba(255,255,255,0.1)" }} />
-      <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5 }}>Navigate Demo</div>
-    </div>
-  </div>
-);
+  );
+};
