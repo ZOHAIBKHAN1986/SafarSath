@@ -1,0 +1,9 @@
+{
+  "appId": "com.safarsaath.app",
+  "appName": "SafarSaath",
+  "webDir": "build",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}
